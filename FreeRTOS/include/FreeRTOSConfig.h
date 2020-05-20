@@ -132,7 +132,7 @@ standard names. */
 
 /* Prevent the inclusion of items the assembler will not understand in assembly
 files. */
-#ifndef __IAR_SYSTEMS_ASM__
+#if defined(__ICCARM__) || defined(__CC_ARM) || defined(__GNUC__)
 
 	/* Library includes. */
 	#include "stm32f7xx_hal.h"
