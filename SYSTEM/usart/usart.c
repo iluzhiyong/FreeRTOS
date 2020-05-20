@@ -2,7 +2,7 @@
 ////////////////////////////////////////////////////////////////////////////////// 	 
 //如果使用os,则包括下面的头文件即可.
 #if SYSTEM_SUPPORT_OS
-#include "includes.h"					//os 使用	  
+#include "FreeRTOS.h"					//os 使用	  
 #endif
 //////////////////////////////////////////////////////////////////////////////////	 
 //本程序只供学习使用，未经作者许可，不得用于其它任何用途
@@ -137,9 +137,6 @@ void USART1_IRQHandler(void)
 { 
 	u32 timeout=0;
     u32 maxDelay=0x1FFFF;
-#if SYSTEM_SUPPORT_OS	 	//使用OS
-	OSIntEnter();    
-#endif
 	
 	HAL_UART_IRQHandler(&UART1_Handler);	//调用HAL库中断处理公用函数
 	
@@ -156,9 +153,6 @@ void USART1_IRQHandler(void)
         timeout++; //超时处理
         if(timeout>maxDelay) break;	
 	}
-#if SYSTEM_SUPPORT_OS	 	//使用OS
-	OSIntExit();  											 
-#endif
 } 
 #endif	
 
