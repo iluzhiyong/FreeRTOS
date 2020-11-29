@@ -53,7 +53,7 @@ void start_task(void *pvParam)
 	while(1)
 	{
 		printf("Start task\n\r");
-		vTaskDelay(500);
+		vTaskDelay(1000);
 	}
 }
 
@@ -63,6 +63,6 @@ void led_task(void *pvParam)
 	{
 		LED0_Toggle;
 		printf("LED task\n\r");
-		vTaskDelay(500);
+		vTaskDelay(1000);
 	}
 }
