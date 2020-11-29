@@ -9,8 +9,8 @@
 
 #define START_TASK_PRIO     1
 #define LED_TASK_PRIO       2
-#define TEST1_TASK_PRIO     3
-#define TEST2_TASK_PRIO     4
+#define TEST1_TASK_PRIO     2
+#define TEST2_TASK_PRIO     3
 
 #define START_TASK_SIZE     128
 #define LED_TASK_SIZE       50
@@ -21,6 +21,9 @@ TaskHandle_t StartTask_Handler;
 void start_task(void *pvParam);
 
 TaskHandle_t LEDTask_Handler;
+TaskHandle_t Task1_Handler;
+TaskHandle_t Task2_Handler;
+
 void led_task(void *pvParam);
 void test1_task(void *pvParam);
 void test2_task(void *pvParam);
@@ -79,8 +82,8 @@ int main(void)
   uart_init(115200);              //串口初始化
   LED_Init();                     //初始化LED
   
-  TIM3_Init();
-  TIM5_Init();
+//  TIM3_Init();
+//  TIM5_Init();
 
   printf("Main \r\n");
 
@@ -98,26 +101,26 @@ void start_task(void *pvParam)
 {
   taskENTER_CRITICAL();
 
-  xTaskCreate((TaskFunction_t) led_task,
-        (const char*)"led_task",
-        (uint16_t)LED_TASK_SIZE,
-        (void*)NULL,
-        (UBaseType_t)LED_TASK_PRIO,
-        (TaskHandle_t*)&LEDTask_Handler);
+//  xTaskCreate((TaskFunction_t) led_task,
+//        (const char*)"led_task",
+//        (uint16_t)LED_TASK_SIZE,
+//        (void*)NULL,
+//        (UBaseType_t)LED_TASK_PRIO,
+//        (TaskHandle_t*)&LEDTask_Handler);
         
   xTaskCreate((TaskFunction_t) test1_task,
         (const char*)"test1_task",
         (uint16_t)TEST1_TASK_SIZE,
         (void*)NULL,
         (UBaseType_t)TEST1_TASK_PRIO,
-        (TaskHandle_t*)&LEDTask_Handler);
+        (TaskHandle_t*)&Task1_Handler);
         
-//  xTaskCreate((TaskFunction_t) test2_task,
-//        (const char*)"test2_task",
-//        (uint16_t)TEST2_TASK_SIZE,
-//        (void*)NULL,
-//        (UBaseType_t)TEST2_TASK_PRIO,
-//        (TaskHandle_t*)&LEDTask_Handler);
+  xTaskCreate((TaskFunction_t) test2_task,
+        (const char*)"test2_task",
+        (uint16_t)TEST2_TASK_SIZE,
+        (void*)NULL,
+        (UBaseType_t)TEST2_TASK_PRIO,
+        (TaskHandle_t*)&Task2_Handler);
         
   vTaskDelete(StartTask_Handler);
         
@@ -128,7 +131,7 @@ void led_task(void *pvParam)
 {
   while(1)
   {
-    LED0_Toggle;
+    //LED0_Toggle;
     //printf("LED task\r\n");
     vTaskDelay(1000);
   }
@@ -138,16 +141,16 @@ void test1_task(void *pvParam)
 {
   static uint32_t lTotalNum = 0;
   
-  while (1)
+  for (;;)
   {
     lTotalNum++;
+    LED0_Toggle;
+    printf("Task1: %d \r\n", lTotalNum);
+    
     if (lTotalNum == 5)
     {
-      printf("Disable interrupt \r\n");
-      portDISABLE_INTERRUPTS();
-      delay_xms(5000);
-      printf("Enable interrupt \r\n");
-      portENABLE_INTERRUPTS();
+      vTaskDelete(Task2_Handler);
+      printf("Task1: deleted task2 \r\n");
     }
     vTaskDelay(1000);
   }
@@ -155,9 +158,13 @@ void test1_task(void *pvParam)
 
 void test2_task(void *pvParam)
 {
-  while(1)
+  static uint32_t lTotalNum = 0;
+  
+  for (;;)
   {
-    printf("test2 task \r\n");
+    lTotalNum++;
+    LED1_Toggle;
+    printf("Task2: %d \r\n", lTotalNum);
     vTaskDelay(1000);
   }
 }
