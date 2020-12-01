@@ -17,14 +17,19 @@
 #define TEST1_TASK_SIZE     128
 #define TEST2_TASK_SIZE     128
 
-TaskHandle_t StartTask_Handler;
-void start_task(void *pvParam);
+StaticTask_t StartTaskTCB;
+StaticTask_t Test1TaskTCB;
+StaticTask_t Test2TaskTCB;
 
-TaskHandle_t LEDTask_Handler;
+StackType_t StartTaskStack[START_TASK_SIZE];
+StackType_t Test1TaskStack[TEST1_TASK_SIZE];
+StackType_t Test2TaskStack[TEST2_TASK_SIZE];
+
+TaskHandle_t StartTask_Handler;
 TaskHandle_t Task1_Handler;
 TaskHandle_t Task2_Handler;
 
-void led_task(void *pvParam);
+void start_task(void *pvParam);
 void test1_task(void *pvParam);
 void test2_task(void *pvParam);
 
@@ -81,18 +86,16 @@ int main(void)
   delay_init(216);                //延时初始化
   uart_init(115200);              //串口初始化
   LED_Init();                     //初始化LED
-  
-//  TIM3_Init();
-//  TIM5_Init();
 
   printf("Main \r\n");
 
-  xTaskCreate((TaskFunction_t) start_task,
-        (const char*)"start_task",
-        (uint16_t)START_TASK_SIZE,
-        (void*)NULL,
-        (UBaseType_t)START_TASK_PRIO,
-        (TaskHandle_t*)&StartTask_Handler);
+  StartTask_Handler = xTaskCreateStatic((TaskFunction_t )start_task,
+                                        (const char*    )"start_task",
+                                        (uint32_t       )START_TASK_SIZE,
+                                        (void*          )NULL,
+                                        (UBaseType_t    )START_TASK_PRIO,
+                                        (StackType_t*   )StartTaskStack,
+                                        (StaticTask_t*  )&StartTaskTCB);
         
   vTaskStartScheduler();
 }
@@ -100,28 +103,22 @@ int main(void)
 void start_task(void *pvParam)
 {
   taskENTER_CRITICAL();
-
-//  xTaskCreate((TaskFunction_t) led_task,
-//        (const char*)"led_task",
-//        (uint16_t)LED_TASK_SIZE,
-//        (void*)NULL,
-//        (UBaseType_t)LED_TASK_PRIO,
-//        (TaskHandle_t*)&LEDTask_Handler);
-        
-  xTaskCreate((TaskFunction_t) test1_task,
-        (const char*)"test1_task",
-        (uint16_t)TEST1_TASK_SIZE,
-        (void*)NULL,
-        (UBaseType_t)TEST1_TASK_PRIO,
-        (TaskHandle_t*)&Task1_Handler);
-        
-  xTaskCreate((TaskFunction_t) test2_task,
-        (const char*)"test2_task",
-        (uint16_t)TEST2_TASK_SIZE,
-        (void*)NULL,
-        (UBaseType_t)TEST2_TASK_PRIO,
-        (TaskHandle_t*)&Task2_Handler);
-        
+  
+  Task1_Handler = xTaskCreateStatic((TaskFunction_t )test1_task,
+                                        (const char*    )"task1_task",
+                                        (uint32_t       )TEST1_TASK_SIZE,
+                                        (void*          )NULL,
+                                        (UBaseType_t    )TEST1_TASK_PRIO,
+                                        (StackType_t*   )Test1TaskStack,
+                                        (StaticTask_t*  )&Test1TaskTCB);
+                                        
+  Task2_Handler = xTaskCreateStatic((TaskFunction_t )test2_task,
+                                        (const char*    )"task2_task",
+                                        (uint32_t       )TEST2_TASK_SIZE,
+                                        (void*          )NULL,
+                                        (UBaseType_t    )TEST2_TASK_PRIO,
+                                        (StackType_t*   )Test2TaskStack,
+                                        (StaticTask_t*  )&Test2TaskTCB);
   vTaskDelete(StartTask_Handler);
         
   taskEXIT_CRITICAL();
@@ -131,7 +128,7 @@ void led_task(void *pvParam)
 {
   while(1)
   {
-    //LED0_Toggle;
+    LED0_Toggle;
     //printf("LED task\r\n");
     vTaskDelay(1000);
   }
